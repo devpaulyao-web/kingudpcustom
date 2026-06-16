@@ -1,7 +1,6 @@
 import json
 import os
 import subprocess
-import requests
 from datetime import datetime, timedelta
 
 CLIENTS_FILE = "clients.json"
@@ -23,13 +22,6 @@ def load_clients():
 def save_clients(clients):
     with open(CLIENTS_FILE, "w") as f:
         json.dump(clients, f, indent=4)
-
-def get_public_ip():
-    try:
-        ip = requests.get("https://api.ipify.org").text
-        return ip
-    except:
-        return "IP inconnue"
 
 def add_client():
     username = input(f"{CYAN}Nom du client: {RESET}")
@@ -58,19 +50,13 @@ def remove_client():
         print(f"{YELLOW}Client introuvable{RESET}")
 
 def list_clients():
-    ip = get_public_ip()
     clients = load_clients()
     print(f"{CYAN}--- Liste des clients ---{RESET}")
     for user, info in clients.items():
-        conn_str = f"{ip}:443@{user}:{info['password']}"
-        print(f"{GREEN}{user}{RESET} | expire: {info['expiry']} | max_conn: {info['max_conn']} | online: {info['online']} | connexion: {conn_str}")
+        print(f"{GREEN}{user}{RESET} | expire: {info['expiry']} | max_conn: {info['max_conn']} | online: {info['online']}")
 
 def uninstall():
     print(f"{RED}⚠️ Suppression complète de UDP Custom Manager...{RESET}")
-    confirm = input(f"{YELLOW}Voulez-vous vraiment désinstaller ? (oui/non): {RESET}")
-    if confirm.lower() != "oui":
-        print(f"{CYAN}Opération annulée.{RESET}")
-        return
     try:
         subprocess.run(["systemctl", "stop", "udp.service"], check=False)
         subprocess.run(["systemctl", "disable", "udp.service"], check=False)
@@ -86,10 +72,8 @@ def uninstall():
 def menu():
     while True:
         os.system("clear")
-        ip = get_public_ip()
         print(f"{RED}• UDP Custom Manager •{RESET}")
-        print(f"{YELLOW}Version: 2.5-Lite | Nom: KingUser{RESET}")
-        print(f"{CYAN}Adresse IP VPS: {ip}{RESET}\n")
+        print(f"{YELLOW}Version: 2.5-Lite | Nom: KingUser{RESET}\n")
         print(f"{CYAN}[1]{RESET} Ajouter un client")
         print(f"{CYAN}[2]{RESET} Supprimer un client")
         print(f"{CYAN}[3]{RESET} Lister les clients")
@@ -110,4 +94,10 @@ def menu():
             os.system("uptime")
             input("Appuyez sur Entrée pour continuer...")
         elif choice == "10":
-            uninstall
+            uninstall()
+            break
+        elif choice == "0":
+            break
+
+if __name__ == "__main__":
+    menu()
