@@ -1,5 +1,6 @@
 import json
 import os
+import subprocess
 from datetime import datetime, timedelta
 
 CLIENTS_FILE = "clients.json"
@@ -54,6 +55,20 @@ def list_clients():
     for user, info in clients.items():
         print(f"{GREEN}{user}{RESET} | expire: {info['expiry']} | max_conn: {info['max_conn']} | online: {info['online']}")
 
+def uninstall():
+    print(f"{RED}⚠️ Suppression complète de UDP Custom Manager...{RESET}")
+    try:
+        subprocess.run(["systemctl", "stop", "udp.service"], check=False)
+        subprocess.run(["systemctl", "disable", "udp.service"], check=False)
+        subprocess.run(["rm", "-f", "/etc/systemd/system/udp.service"], check=False)
+        subprocess.run(["systemctl", "daemon-reload"], check=False)
+        subprocess.run(["rm", "-f", "/usr/local/bin/udp"], check=False)
+        project_path = os.path.dirname(os.path.abspath(__file__))
+        subprocess.run(["rm", "-rf", project_path], check=False)
+        print(f"{GREEN}✅ UDP Custom Manager désinstallé avec succès.{RESET}")
+    except Exception as e:
+        print(f"{RED}Erreur lors de la désinstallation: {e}{RESET}")
+
 def menu():
     while True:
         os.system("clear")
@@ -63,6 +78,7 @@ def menu():
         print(f"{CYAN}[2]{RESET} Supprimer un client")
         print(f"{CYAN}[3]{RESET} Lister les clients")
         print(f"{CYAN}[4]{RESET} Infos VPS")
+        print(f"{CYAN}[10]{RESET} Désinstaller UDP Manager")
         print(f"{CYAN}[0]{RESET} Quitter\n")
         choice = input(f"{YELLOW}→ Choisissez une option: {RESET}")
         if choice == "1":
@@ -77,6 +93,9 @@ def menu():
         elif choice == "4":
             os.system("uptime")
             input("Appuyez sur Entrée pour continuer...")
+        elif choice == "10":
+            uninstall()
+            break
         elif choice == "0":
             break
 
