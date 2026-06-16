@@ -1,0 +1,12 @@
+[Unit]
+Description=UDP Custom Server
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /root/udp-custom-manager/server.py
+WorkingDirectory=/root/udp-custom-manager
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
