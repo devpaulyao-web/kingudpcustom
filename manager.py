@@ -17,12 +17,19 @@ def save_clients(clients):
 
 def add_client():
     username = input("Nom du client: ")
+    password = input("Mot de passe: ")
     days = int(input("Durée en jours: "))
+    max_conn = int(input("Nombre maximum de connexions simultanées: "))
     expiry = (datetime.now() + timedelta(days=days)).isoformat()
     clients = load_clients()
-    clients[username] = {"expiry": expiry, "online": False}
+    clients[username] = {
+        "password": password,
+        "expiry": expiry,
+        "max_conn": max_conn,
+        "online": 0   # compteur de connexions actives
+    }
     save_clients(clients)
-    print(f"✅ Client {username} ajouté (expire le {expiry})")
+    print(f"✅ Client {username} ajouté (expire le {expiry}, max {max_conn} connexions)")
 
 def remove_client():
     username = input("Nom du client à supprimer: ")
@@ -37,7 +44,7 @@ def remove_client():
 def list_clients():
     clients = load_clients()
     for user, info in clients.items():
-        print(f"{user} | expire: {info['expiry']} | online: {info['online']}")
+        print(f"{user} | expire: {info['expiry']} | max_conn: {info['max_conn']} | online: {info['online']}")
 
 def menu():
     while True:
@@ -51,8 +58,10 @@ def menu():
         choice = input("→ Choisissez une option: ")
         if choice == "1":
             add_client()
+            input("Appuyez sur Entrée pour continuer...")
         elif choice == "2":
             remove_client()
+            input("Appuyez sur Entrée pour continuer...")
         elif choice == "3":
             list_clients()
             input("Appuyez sur Entrée pour continuer...")
