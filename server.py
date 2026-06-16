@@ -5,12 +5,6 @@ import json
 from datetime import datetime
 
 # Charger la configuration
-with open("config.json", "r") as f:
-    config = json.load(f)
-
-PORTS = config.get("ports", [53, 443, 8080])
-EXCLUDE = config.get("exclude", [])
-
 CLIENTS_FILE = "clients.json"
 
 def load_clients():
@@ -64,4 +58,32 @@ class UDPProtocol(asyncio.DatagramProtocol):
             self.transport.sendto(b"Mot de passe incorrect", addr)
             return
 
-        # Vérifier limite
+        # Vérifier limite de connexions
+        if client["online"] >= client["max_conn"]:
+            self.transport.sendto(b"Limite de connexions atteinte", addr)
+            return
+
+        # Autoriser connexion
+        client["online"] += 1
+        save_clients(clients)
+
+        response = f"Connexion OK pour {username} sur {ip}:{port}".encode()
+        self.transport.sendto(response, addr)
+
+async def main():
+    loop = asyncio.get_running_loop()
+    # Ouvrir tous les ports de 1 à 65535
+    for port in range(1, 65536):
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 1048576)
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 1048576)
+            sock.bind(("0.0.0.0", port))
+            await loop.create_datagram_endpoint(lambda: UDPProtocol(), sock=sock)
+            logging.info(f"Serveur UDP actif sur port {port}")
+        except Exception as e:
+            logging.warning(f"Impossible d’ouvrir le port {port}: {e}")
+    await asyncio.sleep(3600*24)
+
+if __name__ == "__main__":
+    asyncio.run(main())
